@@ -1,0 +1,112 @@
+// ACTIVE schema — Postgres (Neon). Swapped from the SQLite dev schema per the
+// README "Switching to Neon Postgres" recipe. The canonical copy is kept at
+// prisma/schema.postgres.prisma. String[] columns are native arrays and Json
+// columns are real Json — lib/json-array.ts helpers are passthrough accordingly.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Pillar {
+  id          String   @id @default(cuid())
+  name        String
+  dayOfWeek   Int      @unique
+  colorMode   String
+  description String
+  createdAt   DateTime @default(now())
+
+  ideas Idea[]
+  reels Reel[]
+}
+
+model Idea {
+  id               String   @id @default(cuid())
+  content          String   @db.Text
+  pillarId         String?
+  pillar           Pillar?  @relation(fields: [pillarId], references: [id])
+  status           String   @default("draft")
+  source           String   @default("manual")
+  tags             String[] @default([])
+  notes            String?  @db.Text
+  promotedToReelId String?  @unique
+  reel             Reel?    @relation(fields: [promotedToReelId], references: [id])
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([status])
+  @@index([pillarId, status])
+}
+
+model Reel {
+  id                   String    @id @default(cuid())
+  dayNumber            Int       @unique
+  scheduledDate        DateTime
+  pillarId             String
+  pillar               Pillar    @relation(fields: [pillarId], references: [id])
+  hook                 String?   @db.Text
+  act1Broll            String?   @db.Text
+  act2Script           String?   @db.Text
+  act3Payoff           String?   @db.Text
+  cta                  String?   @default("Link di bio · 1.000 seat launch")
+  musicVibe            String?
+  textOverlays         Json?
+  brollList            String[]  @default([])
+  status               String    @default("idea")
+  filmedAt             DateTime?
+  editedAt             DateTime?
+  postedAt             DateTime?
+  igUrl                String?
+  tiktokUrl            String?
+  notes                String?   @db.Text
+  estimatedDurationSec Int?      @default(45)
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+  idea                 Idea?
+
+  @@index([status])
+  @@index([scheduledDate])
+}
+
+model Opinion {
+  id           String   @id @default(cuid())
+  content      String   @db.Text
+  context      String?  @db.Text
+  tags         String[] @default([])
+  status       String   @default("fresh")
+  usedInReelId String?
+  createdAt    DateTime @default(now())
+
+  @@index([status])
+}
+
+model BrollClip {
+  id          String    @id @default(cuid())
+  tag         String    @unique
+  filePath    String
+  duration    Float
+  category    String
+  description String?
+  usedCount   Int       @default(0)
+  lastUsedAt  DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([category])
+}
+
+model ActivityLog {
+  id         String   @id @default(cuid())
+  actor      String
+  action     String
+  entityId   String?
+  entityType String?
+  payload    Json?
+  createdAt  DateTime @default(now())
+
+  @@index([actor, createdAt])
+}
