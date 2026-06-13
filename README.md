@@ -91,18 +91,23 @@ Remaining (provision side): set `DATABASE_URL` (pooled) + `DIRECT_URL` (direct) 
 
 To run **locally on SQLite** instead, restore `provider="sqlite"` + the JSON-string helpers (see `.env.example`).
 
-## Deploy (Vercel)
+## Deploy (Vercel) — LIVE
+
+**Production:** https://r2-studio-richies-projects-6f212435.vercel.app
+**Repo:** https://github.com/Richienv/r2-studio · **DB:** Neon `r2-studio-db` (Marketplace integration)
+
+Env vars on the Vercel project (Production + Preview): `R2_STUDIO_API_KEY`, plus the Neon-injected
+`DATABASE_URL` / `DATABASE_URL_UNPOOLED` / `POSTGRES_PRISMA_URL` and a `DIRECT_URL` (= unpooled, for `prisma db push`).
+At runtime the app uses `POSTGRES_PRISMA_URL` (pgbouncer-ready) via `lib/db.ts`.
+
+Deployment Protection (Vercel SSO) is **off** so Hermes + the R2·OS hub can reach the API; the app's own
+`x-api-key` guards mutations. Check liveness anytime:
 
 ```bash
-gh repo create r2-studio --public --source=. --push
-vercel link
-vercel env add R2_STUDIO_API_KEY    # generate a fresh 32-char key
-vercel env add DATABASE_URL          # Neon pooled URL
-vercel env add DIRECT_URL            # Neon direct URL
-vercel --prod
+curl -s https://r2-studio-richies-projects-6f212435.vercel.app/api/hermes/health | jq .data
 ```
 
-Target alias: `r2-studio.vercel.app`. Add Deployment Protection → Password in Vercel project settings.
+Redeploy from CLI: `vercel --prod`. If the GitHub repo is connected (Settings → Git), pushes to `main` auto-deploy.
 
 ## R2·OS hub integration
 

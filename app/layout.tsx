@@ -23,8 +23,12 @@ const dmMono = DM_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "R2·STUDIO",
+  title: { default: "R2·STUDIO", template: "%s · R2·STUDIO" },
   description: "Content operations for the 365-day reel project.",
+  applicationName: "R2·STUDIO",
+  appleWebApp: { capable: true, statusBarStyle: "black-translucent", title: "R2·STUDIO" },
+  // Private personal tool — keep it out of search engines.
+  robots: { index: false, follow: false },
 };
 
 export const viewport: Viewport = {
